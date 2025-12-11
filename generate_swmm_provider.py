@@ -35,6 +35,8 @@ from .generate_swmm_inp_file import GenerateSwmmInpFile
 from .generate_default_data import GenerateDefaultFolder
 from .generate_swmm_import_inp_file import ImportInpFile
 from .create_submodel import CreateSubModel
+from .gis_to_swmm_algorithm import GisToSwmmAlgorithm
+from .swmm_layer_builder import SwmmLayerBuilderAlgorithm
 from qgis.PyQt.QtGui import QIcon
 import os
 pluginPath = os.path.dirname(__file__)
@@ -63,6 +65,16 @@ class GenerateSwmmProvider(QgsProcessingProvider):
         self.addAlgorithm(GenerateDefaultFolder())
         self.addAlgorithm(ImportInpFile())
         self.addAlgorithm(CreateSubModel())
+        self.addAlgorithm(GisToSwmmAlgorithm())
+        # converters to SWMM layer schema
+        self.addAlgorithm(SwmmLayerBuilderAlgorithm('JUNCTIONS', 'Junctions: Build Layer', 'Point'))
+        self.addAlgorithm(SwmmLayerBuilderAlgorithm('OUTFALLS', 'Outfalls: Build Layer', 'Point'))
+        self.addAlgorithm(SwmmLayerBuilderAlgorithm('RAINGAGES', 'Raingages: Build Layer', 'Point'))
+        self.addAlgorithm(SwmmLayerBuilderAlgorithm('STORAGE', 'Storages: Build Layer', 'Point'))
+        self.addAlgorithm(SwmmLayerBuilderAlgorithm('CONDUITS', 'Conduits: Build Layer', 'LineString'))
+        self.addAlgorithm(SwmmLayerBuilderAlgorithm('ORIFICES', 'Orifices: Build Layer', 'LineString'))
+        self.addAlgorithm(SwmmLayerBuilderAlgorithm('PUMPS', 'Pumps: Build Layer', 'LineString'))
+        self.addAlgorithm(SwmmLayerBuilderAlgorithm('WEIRS', 'Weirs: Build Layer', 'LineString'))
 
     def id(self):
         """
