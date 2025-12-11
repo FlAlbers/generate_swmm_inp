@@ -130,10 +130,25 @@ class SwmmLayerBuilderAlgorithm(QgsProcessingAlgorithm):
 
         total = input_layer.featureCount()
         for idx, feature in enumerate(input_layer.getFeatures()):
+            area_ha = None
+            width_val = None
+            if self.section_key == 'SUBCATCHMENTS':
+                geom = feature.geometry()
+                area_val = geom.area()
+                area_ha = area_val / 10000 if area_val is not None else None
+                width_val = (area_val ** 0.5) if area_val not in [None, 0] else None
+
             attrs = [
                 self._value_from_feature(feature, field_map.get(field), defaults.get(field))
                 for field in target_fields_def.keys()
             ]
+            if self.section_key == 'SUBCATCHMENTS':
+                for i, field_name in enumerate(target_fields_def.keys()):
+                    if field_name == 'Area' and (not field_map.get('Area')) and area_ha is not None:
+                        attrs[i] = area_ha
+                    if field_name == 'Width' and (not field_map.get('Width')) and width_val is not None:
+                        attrs[i] = width_val
+
             out_feat = QgsFeature(target_fields)
             out_feat.setGeometry(feature.geometry())
             out_feat.setAttributes(attrs)
@@ -282,6 +297,35 @@ class SwmmLayerBuilderAlgorithm(QgsProcessingAlgorithm):
 
     def _field_definitions(self, section: str) -> List[Tuple[str, str, str, bool]]:
         """Define which SWMM fields can be mapped per section (param id, label, target, required)."""
+        if section == 'SUBCATCHMENTS':
+            return [
+                ('NAME_FIELD', 'Name field', 'Name', True),
+                ('RAINGAGE_FIELD', 'RainGage field', 'RainGage', False),
+                ('OUTLET_FIELD', 'Outlet field', 'Outlet', True),
+                ('AREA_FIELD', 'Area field', 'Area', False),
+                ('IMPERV_FIELD', '%Imperv field', 'Imperv', True),
+                ('WIDTH_FIELD', 'Width field', 'Width', False),
+                ('SLOPE_FIELD', 'Slope field', 'Slope', False),
+                ('CURBLEN_FIELD', 'CurbLen field', 'CurbLen', False),
+                ('SNOWPACK_FIELD', 'SnowPack field', 'SnowPack', False),
+                ('NIMPERV_FIELD', 'N-Imperv field', 'N_Imperv', False),
+                ('NPERV_FIELD', 'N-Perv field', 'N_Perv', False),
+                ('SIMPERV_FIELD', 'S-Imperv field', 'S_Imperv', False),
+                ('SPERV_FIELD', 'S-Perv field', 'S_Perv', False),
+                ('PCTZERO_FIELD', 'PctZero field', 'PctZero', False),
+                ('ROUTETO_FIELD', 'RouteTo field', 'RouteTo', False),
+                ('PCTR_FIELD', 'PctRouted field', 'PctRouted', False),
+                ('INFMETHOD_FIELD', 'InfMethod field', 'InfMethod', False),
+                ('SUCTHEAD_FIELD', 'SuctHead field', 'SuctHead', False),
+                ('CONDUCTIV_FIELD', 'Conductiv field', 'Conductiv', False),
+                ('INITDEF_FIELD', 'InitDef field', 'InitDef', False),
+                ('MAXRATE_FIELD', 'MaxRate field', 'MaxRate', False),
+                ('MINRATE_FIELD', 'MinRate field', 'MinRate', False),
+                ('DECAY_FIELD', 'Decay field', 'Decay', False),
+                ('DRYTIME_FIELD', 'DryTime field', 'DryTime', False),
+                ('MAXINF_FIELD', 'MaxInf field', 'MaxInf', False),
+                ('CURVENUM_FIELD', 'CurveNum field', 'CurveNum', False),
+            ]
         if section == 'JUNCTIONS':
             return [
                 ('NAME_FIELD', 'Name field', 'Name', True),
